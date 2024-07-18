@@ -1,7 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { User, Prisma } from '@prisma/client';
 import { UserRepository } from '../user/repository/user.repository';
-import * as bcrypt from 'bcrypt';
+import bcrypt, { compare, hash } from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
@@ -27,7 +27,7 @@ export class AuthService {
       return null;
     }
     const saltOrRounds = 10;
-    data.password = await bcrypt.hash(data.password, saltOrRounds);
+    data.password = await hash(data.password, saltOrRounds);
     const user = await this.repository.createUser(data);
     return await this.generateToken(user);
   }
@@ -42,7 +42,7 @@ export class AuthService {
     if (!user) {
       throw new Error('User is not register');
     }
-    const passwordEquals = await bcrypt.compare(data.password, user.password);
+    const passwordEquals = await compare(data.password, user.password);
     if (user && passwordEquals) {
       return user;
     }
